@@ -1,0 +1,18 @@
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar (Left) -->
+    <app-sidebar class="w-64 hidden md:block flex-shrink-0"></app-sidebar>
+
+    <!-- Main Content Area (Right) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Navbar (Top) -->
+        <app-navbar class="h-16 flex-shrink-0"></app-navbar>
+
+        <!-- Dynamic Page Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            <router-outlet></router-outlet>
+        </main>
+
+        <!-- Footer (Bottom) -->
+        <app-footer></app-footer>
+    </div>
+</div>
