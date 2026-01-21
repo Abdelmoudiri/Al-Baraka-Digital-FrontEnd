@@ -1,0 +1,146 @@
+<div class="p-6">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    {{ error }}
+  </div>
+
+  <!-- Not Found -->
+  <div *ngIf="!isLoading && !operation" class="bg-white rounded-lg shadow-md p-12 text-center">
+    <div class="text-6xl mb-4">🔍</div>
+    <h3 class="text-lg font-semibold text-gray-900 mb-2">Opération non trouvée</h3>
+    <a routerLink="/agent/pending" class="text-indigo-600 hover:underline">Retour aux opérations</a>
+  </div>
+
+  <div *ngIf="!isLoading && operation">
+    <!-- Header -->
+    <div class="mb-8 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Détail de l'opération #{{ operation.id }}</h1>
+        <p class="text-gray-600">{{ getTypeLabel(operation.type) }}</p>
+      </div>
+      <a routerLink="/agent/pending" class="text-indigo-600 hover:underline">
+        ← Retour
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Operation Details -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">📋 Informations de l'opération</h2>
+        <div class="space-y-4">
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">ID</span>
+            <span class="font-medium">#{{ operation.id }}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Type</span>
+            <span class="font-medium">{{ getTypeLabel(operation.type) }}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Montant</span>
+            <span class="font-semibold text-lg">{{ operation.amount | number:'1.2-2' }} MAD</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Statut</span>
+            <span [ngClass]="getStatusClass(operation.status)" class="px-3 py-1 rounded-full text-sm font-medium">
+              {{ getStatusLabel(operation.status) }}
+            </span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Compte source</span>
+            <span class="font-medium">{{ operation.sourceAccountNumber }}</span>
+          </div>
+          <div *ngIf="operation.destinationAccountNumber" class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Compte destination</span>
+            <span class="font-medium">{{ operation.destinationAccountNumber }}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Date de création</span>
+            <span class="font-medium">{{ operation.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div *ngIf="operation.executedAt" class="flex justify-between py-2">
+            <span class="text-gray-500">Date d'exécution</span>
+            <span class="font-medium">{{ operation.executedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <!-- Actions for PENDING operations -->
+        <div *ngIf="operation.status === 'PENDING'" class="mt-6 pt-6 border-t flex space-x-3">
+          <button
+            (click)="approveOperation()"
+            [disabled]="isProcessing"
+            class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition disabled:opacity-50"
+          >
+            <span *ngIf="isProcessing">Traitement...</span>
+            <span *ngIf="!isProcessing">✅ Approuver</span>
+          </button>
+          <button
+            (click)="rejectOperation()"
+            [disabled]="isProcessing"
+            class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition disabled:opacity-50"
+          >
+            <span *ngIf="isProcessing">Traitement...</span>
+            <span *ngIf="!isProcessing">❌ Rejeter</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Analysis -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">🤖 Analyse IA</h2>
+        
+        <!-- Loading AI -->
+        <div *ngIf="isLoadingAi" class="flex justify-center items-center h-48">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <!-- AI Error -->
+        <div *ngIf="aiError && !isLoadingAi" class="bg-gray-50 rounded-lg p-8 text-center">
+          <div class="text-4xl mb-2">🔍</div>
+          <p class="text-gray-500">{{ aiError }}</p>
+        </div>
+
+        <!-- AI Results -->
+        <div *ngIf="aiValidation && !isLoadingAi" class="space-y-4">
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Décision IA</span>
+            <span [ngClass]="getDecisionClass(aiValidation.decision)" class="px-3 py-1 rounded-full text-sm font-medium">
+              {{ aiValidation.decision }}
+            </span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Score de confiance</span>
+            <span [ngClass]="getConfidenceClass(aiValidation.confidenceScore)" class="font-semibold">
+              {{ (aiValidation.confidenceScore * 100) | number:'1.0-0' }}%
+            </span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Qualité du document</span>
+            <span class="font-medium">{{ (aiValidation.documentQualityScore * 100) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="flex justify-between py-2 border-b">
+            <span class="text-gray-500">Montant extrait</span>
+            <span class="font-medium">{{ aiValidation.extractedAmount | number:'1.2-2' }} MAD</span>
+          </div>
+          <div class="py-2 border-b">
+            <span class="text-gray-500 block mb-2">Résumé de l'analyse</span>
+            <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded">{{ aiValidation.analysisSummary }}</p>
+          </div>
+          <div *ngIf="aiValidation.riskFactors" class="py-2 border-b">
+            <span class="text-gray-500 block mb-2">Facteurs de risque</span>
+            <p class="text-sm text-red-600 bg-red-50 p-3 rounded">{{ aiValidation.riskFactors }}</p>
+          </div>
+          <div class="flex justify-between py-2 text-sm text-gray-400">
+            <span>Modèle: {{ aiValidation.modelUsed }}</span>
+            <span>Temps: {{ aiValidation.processingTimeMs }}ms</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
