@@ -1,0 +1,73 @@
+<div class="p-6">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">💸 Effectuer un retrait</h1>
+      <p class="text-gray-600">Retirez de l'argent de votre compte</p>
+    </div>
+
+    <!-- Current Balance -->
+    <div class="bg-orange-50 rounded-lg p-4 mb-6 max-w-md">
+      <p class="text-sm text-orange-600">Solde disponible</p>
+      <p class="text-2xl font-bold text-orange-700">{{ profile?.balance | number:'1.2-2' }} MAD</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 max-w-md">
+      {{ success }}
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 max-w-md">
+      {{ error }}
+    </div>
+
+    <!-- Withdrawal Form -->
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-md">
+      <form (ngSubmit)="onSubmit()">
+        <div class="mb-4">
+          <label for="amount" class="block text-sm font-medium text-gray-700 mb-2">
+            Montant à retirer (MAD)
+          </label>
+          <input
+            type="number"
+            id="amount"
+            [(ngModel)]="amount"
+            name="amount"
+            min="0.01"
+            [max]="profile?.balance || 0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+            required
+          />
+          <p class="text-sm text-gray-500 mt-1">
+            Maximum: {{ profile?.balance | number:'1.2-2' }} MAD
+          </p>
+        </div>
+
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            [disabled]="isSubmitting || !amount || amount <= 0"
+            class="flex-1 bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span *ngIf="isSubmitting">Traitement...</span>
+            <span *ngIf="!isSubmitting">Confirmer le retrait</span>
+          </button>
+          <a
+            routerLink="/client/dashboard"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+          >
+            Annuler
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
