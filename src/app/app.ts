@@ -9,4 +9,5 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App {
   protected readonly title = signal('albaraka-front');
+  protected readonly version = signal('0.0.1');
 }
